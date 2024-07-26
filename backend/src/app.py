@@ -1,4 +1,7 @@
 import json
+import pgeocode
+import numpy
+import pandas
 
 from db import db
 from flask import Flask, request
@@ -28,7 +31,9 @@ def test():
     Default endpoint
     """
     return "Hello, this is a test"
+
 # USER ROUTES -----------------------------------------
+
 @app.route("/api/users/", methods = ["GET"])
 def get_users():
     """
@@ -169,6 +174,7 @@ def delete_user(user_id):
     return success_response(user.serialize(), 201)
 
 # PET ROUTES -----------------------------------------
+
 @app.route("/api/pets/", methods = ["GET"])
 def get_pets():
     """
@@ -177,6 +183,34 @@ def get_pets():
     pets = [pet.serialize() for pet in Pet.query.all()]
 
     return success_response({"pets": pets}, 201)
+
+@app.route("/api/pets/<int:_shelter_id>", methods = ["GET"])
+def get_pets(_shelter_id):
+    """
+    Endpoint for getting all pets from a shelter based on the shelter's id
+    """
+    pets = [pet.serialize() for pet in Pet.query.filter_by(shelter_id = _shelter_id)]
+
+    return success_response({"pets": pets}, 201)
+
+@app.route("/api/pets/loc", methods = ["POST"])
+def get_pets():
+    """
+    Endpoint for getting all pets within a user's location radius
+    """
+    body = json.loads(request.data)
+    if body.get("zipcode") is None:
+        return failure_response("Missing zip code", 400)
+    zip = body.get("zipcode")
+    pets = [Pet.query.all()]
+    res = []
+
+    usa_zipcodes = pgeocode.GeoDistance('us')
+    for pet in pets:
+        if (usa_zipcodes.query_postal_code(zip, pet.location)):
+            res.append(pet)
+
+    return success_response({"pets in radius": res}, 201)
 
 @app.route("/api/pets/", methods = ["POST"])
 def create_pet():
@@ -237,6 +271,7 @@ def delete_pet(pet_id):
     return success_response(pet.serialize())
 
 # SHELTER ROUTES -----------------------------------------
+
 @app.route("/api/shelters/", methods = ["GET"])
 def get_shelters():
     """
