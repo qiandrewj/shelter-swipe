@@ -184,8 +184,8 @@ def get_pets():
 
     return success_response({"pets": pets}, 201)
 
-@app.route("/api/pets/<int:_shelter_id>", methods = ["GET"])
-def get_pets(_shelter_id):
+@app.route("/api/pets/<int:_shelter_id>/", methods = ["GET"])
+def get_pets_from_shelter(_shelter_id):
     """
     Endpoint for getting all pets from a shelter based on the shelter's id
     """
@@ -194,7 +194,7 @@ def get_pets(_shelter_id):
     return success_response({"pets": pets}, 201)
 
 @app.route("/api/pets/loc", methods = ["POST"])
-def get_pets():
+def get_pets_by_loc():
     """
     Endpoint for getting all pets within a user's location radius
     """
